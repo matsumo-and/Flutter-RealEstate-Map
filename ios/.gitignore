@@ -27,9 +27,7 @@ ServiceDefinitions.json
 Runner/GeneratedPluginRegistrant.*
 
 #MapBox AccessToken
-.mapbox
-**/.mapbox
-~/flutter_real_estate_map/.mapbox
+/.mapbox
 
 # Exceptions to above rules.
 !default.mode1v3
