@@ -4,31 +4,34 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 
 import './Utility/config.dart';
 
-Future<LatLng> acquireCurrentLocation() async {
-  Location location = Location();
-  bool serviceEnabled;
-  PermissionStatus permissionGranted;
-  serviceEnabled = await location.serviceEnabled();
-  if (!serviceEnabled) {
-    serviceEnabled = await location.requestService();
-    if (!serviceEnabled) {
-      return LatLng(0, 0);
-    }
-  }
-  permissionGranted = await location.hasPermission();
-  if (permissionGranted == PermissionStatus.denied) {
-    permissionGranted = await location.requestPermission();
-    if (permissionGranted != PermissionStatus.granted) {
-      return LatLng(0, 0);
-    }
-  }
-
-  final locationData = await location.getLocation();
-  return LatLng(
-      locationData.latitude!.toDouble(), locationData.longitude!.toDouble());
-}
-
 class HomeScreen extends StatelessWidget {
+  final startLocation = LatLng(35.15362, 136.96964);
+
+  Future<LatLng> acquireCurrentLocation() async {
+    Location location = Location();
+    bool serviceEnabled;
+    PermissionStatus permissionGranted;
+    serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+      if (!serviceEnabled) {
+        return startLocation;
+      }
+    }
+    permissionGranted = await location.hasPermission();
+    if (permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+      if (permissionGranted != PermissionStatus.granted) {
+        return startLocation;
+      }
+    }
+
+    final LocationData locationData = await location.getLocation();
+    print("a");
+    return LatLng(locationData.latitude ?? startLocation.latitude,
+        locationData.longitude ?? startLocation.longitude);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,7 +43,7 @@ class HomeScreen extends StatelessWidget {
           styleString: style,
           initialCameraPosition: CameraPosition(
             zoom: 15.0,
-            target: LatLng(35.15362, 136.96964),
+            target: startLocation,
           ),
           onMapCreated: (MapboxMapController controller) async {
             final result = await acquireCurrentLocation();
