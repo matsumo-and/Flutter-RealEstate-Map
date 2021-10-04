@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
+import './Utility/config.dart';
+
 Future<LatLng> acquireCurrentLocation() async {
   Location location = Location();
   bool serviceEnabled;
@@ -29,16 +31,12 @@ Future<LatLng> acquireCurrentLocation() async {
 class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final String token =
-        'pk.eyJ1IjoicG9ueWFvIiwiYSI6ImNrdHo3bGZpMDA3MzUyb25wbHRlYW8zZjcifQ.zJp2XScgvelBiKISsrs5hQ';
-    final String style = 'mapbox://styles/ponyao/cktznbqp322fe17pcoozkalaj';
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Map"),
       ),
       body: MapboxMap(
-          accessToken: token,
+          accessToken: accessToken,
           styleString: style,
           initialCameraPosition: CameraPosition(
             zoom: 15.0,

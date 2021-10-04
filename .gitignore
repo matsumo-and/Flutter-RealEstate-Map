@@ -47,3 +47,4 @@ app.*.map.json
 
 #MapBox AccessToken
 /.mapbox
+/lib/Utility/config.dart
