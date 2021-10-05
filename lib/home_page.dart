@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:location/location.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
 import './Utility/config.dart';
@@ -7,29 +7,29 @@ import './Utility/config.dart';
 class HomeScreen extends StatelessWidget {
   final startLocation = LatLng(35.15362, 136.96964);
 
-  Future<LatLng> acquireCurrentLocation() async {
-    Location location = Location();
+  Future<Position> _determinePosition() async {
     bool serviceEnabled;
-    PermissionStatus permissionGranted;
-    serviceEnabled = await location.serviceEnabled();
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      serviceEnabled = await location.requestService();
-      if (!serviceEnabled) {
-        return startLocation;
-      }
+      return Future.error('Location services are disabled.');
     }
-    permissionGranted = await location.hasPermission();
-    if (permissionGranted == PermissionStatus.denied) {
-      permissionGranted = await location.requestPermission();
-      if (permissionGranted != PermissionStatus.granted) {
-        return startLocation;
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
       }
     }
 
-    final LocationData locationData = await location.getLocation();
-    print("a");
-    return LatLng(locationData.latitude ?? startLocation.latitude,
-        locationData.longitude ?? startLocation.longitude);
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
+
+    return await Geolocator.getCurrentPosition();
   }
 
   @override
@@ -46,22 +46,23 @@ class HomeScreen extends StatelessWidget {
             target: startLocation,
           ),
           onMapCreated: (MapboxMapController controller) async {
-            final result = await acquireCurrentLocation();
+            final Position _currentPosition = await _determinePosition();
+            final LatLng _currentLatLng =
+                LatLng(_currentPosition.latitude, _currentPosition.longitude);
 
-            await controller.animateCamera(
-              CameraUpdate.newLatLng(result),
-            );
-            print("created");
             await controller.addCircle(
               CircleOptions(
                 circleRadius: 8.0,
                 circleColor: '#006992',
                 circleOpacity: 0.8,
-                geometry: result,
+                geometry: _currentLatLng,
                 draggable: false,
               ),
             );
-            print("created");
+
+            await controller.animateCamera(
+              CameraUpdate.newLatLng(_currentLatLng),
+            );
           }),
     );
   }
